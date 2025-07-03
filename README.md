@@ -1,19 +1,21 @@
-# 🤖 AI-Powered Customer Care System
+# 🤖 AI-Powered Customer Care Chat System
 
-This repository contains the code and assets for my **MSc Data Science Dissertation** at Kingston University. The goal is to develop a real-time AI assistant that empowers customer care teams using:
+This repository is part of my **MSc Data Science Dissertation** at Kingston University.  
+The project aims to build a real-time **AI assistant for customer care**, where agents and customers communicate through a live chat interface. The system performs:
 
-- 💬 **Sentiment Analysis** – to understand customer emotions
-- 🔍 **Named Entity Recognition (NER)** – to extract context
-- 📚 **Knowledge Embeddings (SBERT + FAISS)** – to suggest dynamic responses and insights
+- 💬 **Sentiment Analysis**: Understand user emotions in real-time
+- 🏷️ **Named Entity Recognition (NER)**: Extract key entities from the conversation
+- 🧠 **Knowledge Embeddings (SBERT + FAISS)**: Suggest relevant responses and resources
 
 ---
 
-## 🎯 Project Objectives
+## 🎯 Project Goals
 
-- 🧠 Detect sentiment from customer queries
-- 🧾 Extract relevant entities (product names, issues, etc.)
-- 🔎 Retrieve real-time knowledge snippets using semantic search
-- 🤝 Assist human agents with intelligent, in-the-moment guidance
+- 👥 Create a realistic **agent-customer chat interface** using Streamlit
+- 🧠 Perform real-time **sentiment analysis** on incoming messages
+- 🔍 Identify relevant entities like products or issues using **NER**
+- 📚 Retrieve helpful responses using **knowledge embeddings**
+- ⚙️ Simulate an intelligent assistant supporting live customer care
 
 ---
 
@@ -22,23 +24,24 @@ This repository contains the code and assets for my **MSc Data Science Dissertat
 ```text
 📁 ai-customer-care/
 │
-├── 📂 data/                            → All data-related files
-│   ├── 📄 raw/                         → Raw original datasets (ignored by Git)
-│   └── 📄 cleaned/                     → Preprocessed datasets (ignored by Git)
+├── 📂 data/
+│   └── conversation_datasets/      → Chat datasets (DailyDialog, EmotionLines, etc.)
 │
-├── 📓 notebooks/                      → Jupyter notebooks for EDA & modeling
-│   └── 📊 eda_sentiment.ipynb         → Exploratory Data Analysis notebook
+├── 📂 app/
+│   ├── streamlit_chat.py           → Chat interface (Streamlit)
+│   └── sentiment_engine.py         → Real-time sentiment classifier
 │
-├── 🛠 scripts/                         → Python scripts for automation
-│   └── 🧹 clean_data.py                → Script to clean raw Twitter dataset
+├── 📂 models/                      → (Optional) Trained sentiment/NER models
 │
-├── 🧠 models/                          → (Optional) Trained models and weights
+├── 📂 scripts/
+│   └── prepare_dataset.py          → Preprocessing script for chat datasets
 │
-├── 📤 outputs/                        → (Optional) Visualizations, logs, and exports
+├── 📂 notebooks/
+│   └── eda_chat_dataset.ipynb      → Exploratory analysis on chat data
 │
-├── 📄 .gitignore                      → Git exclusions (e.g., venv, CSVs)
-├── 📦 requirements.txt                → Python dependencies
-└── 📝 README.md                        → Project overview and documentation
+├── 📄 .gitignore
+├── 📦 requirements.txt
+└── 📝 README.md
 
 🧰 Tech Stack
 Python (3.12+)
@@ -47,9 +50,27 @@ Python (3.12+)
 
 .🤗 HuggingFace Transformers (BERT, RoBERTa)
 
-.🧠 SpaCy, Sentence-BERT, FAISS
+.🧠 Sentence-BERT (SBERT), FAISS for knowledge search
 
-.⚡ FastAPI / Flask (planned for real-time API design)
+.⚡ Streamlit for frontend chat UI
 
-Git, GitHub, VS Code
+FastAPI or Flask for backend integration
+
+Git & GitHub for version control
+
+🚫 Note on Datasets
+To keep the repo lightweight, datasets are excluded from version control using .gitignore.
+To work with data, download from sources like HuggingFace:
+
+from datasets import load_dataset
+dataset = load_dataset("daily_dialog")
+
+🙌 Contributions
+This is an academic project and not intended for production use.
+Feel free to fork, star, or use for learning purposes.
+
+📄 License
+This project is for educational and non-commercial purposes only.
+Third-party models and datasets are used under their respective licenses.
+
 ```
