@@ -1,3 +1,25 @@
+# Virtual environment
 venv/
+
+# Python cache
 __pycache__/
+*.py[cod]
+
+# Jupyter Notebook checkpoints
 *.ipynb_checkpoints
+
+# Data files
+data/**/*.csv
+data/**/*.tsv
+data/**/*.json
+data/**/*.zip
+
+# Model files
+models/
+*.pt
+*.pth
+*.bin
+
+# OS files
+.DS_Store
+Thumbs.db
