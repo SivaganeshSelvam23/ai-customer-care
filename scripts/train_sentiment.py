@@ -82,5 +82,5 @@ trainer = Trainer(
 trainer.train()
 
 # Save the final model
-trainer.save_model("models/roberta-sentiment")
+trainer.save_model("backend/models/roberta-sentiment")
 print("✅ Model training complete and saved.")
