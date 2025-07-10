@@ -28,15 +28,16 @@ for chat in raw_data["data"]:
 # Convert to DataFrame
 df = pd.DataFrame(flattened_rows)
 
-# ⛔ Limit no-emotion (label 0) to 230 rows
-max_no_emotion = 230
-no_emotion_df = df[df["emotion"] == 0].sample(n=max_no_emotion, random_state=42)
+# ⛔ Limit overrepresented classes
+max_cap = 250
+no_emotion_df = df[df["emotion"] == 0].sample(n=max_cap, random_state=42)
+happiness_df = df[df["emotion"] == 4].sample(n=max_cap, random_state=42)
 
 # ✅ Keep all other emotion rows
-other_emotions_df = df[df["emotion"] != 0]
+other_emotions_df = df[~df["emotion"].isin([0, 4])]
 
 # 🔀 Combine and shuffle
-balanced_df = pd.concat([no_emotion_df, other_emotions_df]).reset_index(drop=True)
+balanced_df = pd.concat([no_emotion_df, happiness_df, other_emotions_df]).reset_index(drop=True)
 balanced_df = balanced_df.sample(frac=1, random_state=42).reset_index(drop=True)
 
 # Save to CSV
