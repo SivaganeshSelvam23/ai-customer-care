@@ -4,8 +4,11 @@ import torch
 # Load model and tokenizer
 model_path = "backend/models/roberta-sentiment"
 
-# Load tokenizer from HuggingFace (original source)
-tokenizer = RobertaTokenizerFast.from_pretrained("roberta-base")
+# Load tokenizer from local if saved, else fallback to base
+try:
+    tokenizer = RobertaTokenizerFast.from_pretrained(model_path)
+except:
+    tokenizer = RobertaTokenizerFast.from_pretrained("roberta-base")
 
 # Load the fine-tuned model from your local path
 model = RobertaForSequenceClassification.from_pretrained(model_path)

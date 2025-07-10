@@ -7,5 +7,5 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Include sentiment prediction routes
+# sentiment prediction routes
 app.include_router(sentiment_router, prefix="/api/sentiment")
