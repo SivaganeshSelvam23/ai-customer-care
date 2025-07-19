@@ -1,10 +1,7 @@
-# SQLite schema using SQLAlchemy
-
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text
-from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
-
-Base = declarative_base()
+from sqlalchemy.sql import func
+from backend.db.database import Base
 
 class User(Base):
     __tablename__ = 'users'
@@ -16,18 +13,17 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
 class ChatSession(Base):
-    __tablename__ = 'sessions'
-    id = Column(Integer, primary_key=True)
+    __tablename__ = "chat_sessions"
+    id = Column(Integer, primary_key=True, index=True)
     customer_id = Column(Integer, ForeignKey("users.id"))
     agent_id = Column(Integer, ForeignKey("users.id"))
-    start_time = Column(DateTime, default=datetime.utcnow)
-    end_time = Column(DateTime, nullable=True)
     status = Column(String, default="active")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 class Message(Base):
     __tablename__ = 'messages'
     id = Column(Integer, primary_key=True)
-    session_id = Column(Integer, ForeignKey("sessions.id"))
+    session_id = Column(Integer, ForeignKey("chat_sessions.id"))  # fixed FK
     sender = Column(String)
     text = Column(Text)
     emotion = Column(String)

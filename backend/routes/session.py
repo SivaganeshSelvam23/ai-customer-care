@@ -14,36 +14,77 @@ router = APIRouter(tags=["Session"])
 def start_session(customer_id: int):
     db: Session = SessionLocal()
     try:
+        existing = db.query(ChatSession).filter_by(customer_id=customer_id, status="active").first()
+        if existing:
+            agent = db.query(User).filter_by(id=existing.agent_id).first()
+            return {
+                "session_id": existing.id,
+                "agent_id": agent.id,
+                "agent_name": agent.name,
+                "message": "Existing session reused"
+            }
+
         agents = db.query(User).filter_by(role="agent").all()
         if not agents:
             raise HTTPException(status_code=400, detail="No agents available")
 
         agent = random.choice(agents)
-        new_session = ChatSession(customer_id=customer_id, agent_id=agent.id)
+        new_session = ChatSession(
+            customer_id=customer_id,
+            agent_id=agent.id,
+            status="active"
+        )
         db.add(new_session)
         db.commit()
         db.refresh(new_session)
+
         return {
             "session_id": new_session.id,
             "agent_id": agent.id,
-            "message": "Session started"
+            "agent_name": agent.name,
+            "message": "New session started"
         }
     finally:
         db.close()
 
-@router.post("/end-session")
-def end_session(session_id: int):
-    db: Session = SessionLocal()
-    try:
-        session = db.query(ChatSession).filter_by(id=session_id).first()
-        if not session:
-            raise HTTPException(status_code=404, detail="Session not found")
-        if session.status == "ended":
-            return {"message": "Session already ended"}
 
+@router.get("/assigned/{agent_id}")
+def get_assigned_sessions(agent_id: int):
+    db = SessionLocal()
+    try:
+        sessions = db.query(ChatSession).filter_by(agent_id=agent_id, status="active").all()
+        result = []
+        for s in sessions:
+            customer = db.query(User).filter_by(id=s.customer_id).first()
+            result.append({
+                "session_id": s.id,
+                "customer_id": s.customer_id,
+                "customer_name": customer.name,
+                "started_at": s.created_at.strftime("%Y-%m-%d %H:%M"),
+            })
+        return result
+    finally:
+        db.close()
+
+@router.post("/end-session")
+def end_session(session_id: int, customer_id: int):
+    db = SessionLocal()
+    try:
+        session = db.query(ChatSession).filter_by(id=session_id, status="active").first()
+        if not session:
+            raise HTTPException(status_code=404, detail="Session not found or already ended")
+
+        if session.customer_id != customer_id:
+            raise HTTPException(status_code=403, detail="Only the customer can end this session")
+
+        # Delete messages
+        db.query(Message).filter_by(session_id=session_id).delete()
+
+        # Update session status
         session.status = "ended"
         db.commit()
-        return {"message": "Session ended"}
+
+        return {"message": "Session ended and messages deleted"}
     finally:
         db.close()
 
@@ -57,34 +98,26 @@ class MessageInput(BaseModel):
 def send_message(payload: MessageInput):
     db = SessionLocal()
     try:
-        print(f"➡️ Received message: {payload.text}")
         emotion = predict_emotion(payload.text)
-        print(f"🔍 Predicted emotion: {emotion}")
-
         new_msg = Message(
             session_id=payload.session_id,
             sender=payload.sender,
+            text=payload.text,
             emotion=emotion,
             timestamp=datetime.utcnow()
         )
-        # Manually add dynamic column `text` and `sender_id` if present
-        setattr(new_msg, "text", payload.text)
-        setattr(new_msg, "sender_id", payload.sender_id)
-
         db.add(new_msg)
         db.commit()
         db.refresh(new_msg)
-        print(f"✅ Message saved: {new_msg.id}")
         return {"message": "Message sent", "emotion": emotion}
     except Exception as e:
-        print(f"❌ Error in /send: {e}")
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         db.close()
 
 @router.get("/messages/{session_id}")
 def get_messages(session_id: int):
-    db: Session = SessionLocal()
+    db = SessionLocal()
     try:
         messages = db.query(Message).filter_by(session_id=session_id).order_by(Message.timestamp).all()
         return [
