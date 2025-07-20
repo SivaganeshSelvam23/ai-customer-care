@@ -28,3 +28,17 @@ class Message(Base):
     text = Column(Text)
     emotion = Column(String)
     timestamp = Column(DateTime, default=datetime.utcnow)
+
+class AgentLog(Base):
+    __tablename__ = 'agent_logs'
+    id = Column(Integer, primary_key=True, index=True)
+    agent_id = Column(Integer, nullable=False)
+    agent_name = Column(String, nullable=False)
+    customer_id = Column(Integer, nullable=False)
+    customer_name = Column(String, nullable=False)
+    session_id = Column(Integer, nullable=False)
+    start_time = Column(String)
+    end_time = Column(String)
+    outcome = Column(String)
+    ner_summary = Column(Text)
+    messages = Column(Text)  # serialized JSON list

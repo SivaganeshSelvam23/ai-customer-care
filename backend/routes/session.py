@@ -8,6 +8,10 @@ from backend.db.database import SessionLocal
 from backend.db.schema import User, ChatSession, Message
 from app.sentiment_engine import predict_emotion
 
+from backend.routes.logger import log_agent_session_summary
+from backend.db.schema import Message
+
+
 router = APIRouter(tags=["Session"])
 
 @router.post("/start-session")
@@ -68,7 +72,7 @@ def get_assigned_sessions(agent_id: int):
 
 @router.post("/end-session")
 def end_session(session_id: int, customer_id: int):
-    db = SessionLocal()
+    db: Session = SessionLocal()
     try:
         session = db.query(ChatSession).filter_by(id=session_id, status="active").first()
         if not session:
@@ -77,17 +81,38 @@ def end_session(session_id: int, customer_id: int):
         if session.customer_id != customer_id:
             raise HTTPException(status_code=403, detail="Only the customer can end this session")
 
-        # Delete messages
-        db.query(Message).filter_by(session_id=session_id).delete()
+        # Get messages before deletion
+        messages = db.query(Message).filter_by(session_id=session_id).order_by(Message.timestamp).all()
 
-        # Update session status
+        # Prepare message log
+        message_log = [
+            {
+                "text": m.text,
+                "sender": m.sender,
+                "emotion": m.emotion
+            } for m in messages
+        ]
+
+        # Log the session to agent_logs
+        log_agent_session_summary(
+            agent_id=session.agent_id,
+            customer_id=customer_id,
+            session_id=session.id,
+            outcome="resolved",  # or from model if dynamic
+            start_time=session.created_at.strftime("%Y-%m-%d %H:%M"),
+            end_time=datetime.utcnow().strftime("%Y-%m-%d %H:%M"),
+            messages=message_log,
+            ner_spans=[]  # You can populate this later
+        )
+
+        # Delete messages and end session
+        db.query(Message).filter_by(session_id=session_id).delete()
         session.status = "ended"
         db.commit()
 
-        return {"message": "Session ended and messages deleted"}
+        return {"message": "Session ended, logged, and messages deleted"}
     finally:
         db.close()
-
 class MessageInput(BaseModel):
     session_id: int
     sender_id: int
